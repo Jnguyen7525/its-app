@@ -1,11 +1,28 @@
+// export type TCard = {
+//   id: string;
+//   description: string;
+// };
+
+// export type TColumn = {
+//   id: string;
+//   title: string;
+//   cards: TCard[];
+// };
+export type TCardField = {
+  key: string; // e.g. "name"
+  label: string; // e.g. "Name"
+  type: "textarea"; // we’ll support more types later
+};
+
 export type TCard = {
   id: string;
-  description: string;
+  values: Record<string, string>; // keyed by field key
 };
 
 export type TColumn = {
   id: string;
   title: string;
+  fields: TCardField[]; // defines how cards in this column should look
   cards: TCard[];
 };
 

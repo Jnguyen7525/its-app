@@ -429,6 +429,7 @@ import {
   isDraggingACard,
   isDraggingAColumn,
   TBoard,
+  TCardField,
   TColumn,
 } from "./data";
 import { SettingsContext } from "./settings-context";
@@ -454,10 +455,14 @@ export function Board() {
   const dispatch = useAppDispatch();
   const columns = useAppSelector((state) => state.board.columns);
 
-  const handleAddColumn = (title: string) => {
-    console.log("[Board] handleAddColumn:", title);
+  // const handleAddColumn = (title: string) => {
+  //   console.log("[Board] handleAddColumn:", title);
 
-    dispatch(addColumn({ title }));
+  //   dispatch(addColumn({ title }));
+  // };
+  const handleAddColumn = (title: string, fields: TCardField[]) => {
+    console.log("[Board] handleAddColumn:", title, fields);
+    dispatch(addColumn({ title, fields }));
   };
 
   useEffect(() => {

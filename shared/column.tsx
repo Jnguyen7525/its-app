@@ -22,6 +22,7 @@ import {
   isColumnData,
   isDraggingACard,
   isDraggingAColumn,
+  TCard,
   TCardData,
   TColumn,
 } from "./data";
@@ -71,9 +72,14 @@ const idle = { type: "idle" } satisfies TColumnState;
  *
  * Created so that state changes to the column don't require all cards to be rendered
  */
+// const CardList = memo(function CardList({ column }: { column: TColumn }) {
+//   return column.cards.map((card) => (
+//     <Card key={card.id} card={card} columnId={column.id} />
+//   ));
+// });
 const CardList = memo(function CardList({ column }: { column: TColumn }) {
   return column.cards.map((card) => (
-    <Card key={card.id} card={card} columnId={column.id} />
+    <Card key={card.id} card={card} column={column} /> // ✅ pass entire column
   ));
 });
 
@@ -249,6 +255,21 @@ export function Column({ column }: { column: TColumn }) {
     );
   }, [column, settings]);
 
+  const handleAddCard = () => {
+    const newCard: TCard = {
+      id: `card:${crypto.randomUUID()}`,
+      values: column.fields.reduce(
+        (acc, field) => {
+          acc[field.key] = "";
+          return acc;
+        },
+        {} as Record<string, string>
+      ),
+    };
+
+    dispatch(addCard({ columnId: column.id, card: newCard }));
+  };
+
   return (
     <div
       className="flex w-72 shrink-0 select-none flex-col"
@@ -303,13 +324,6 @@ export function Column({ column }: { column: TColumn }) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {/* <button
-              type="button"
-              className="rounded p-2 hover:bg-slate-700 active:bg-slate-600"
-              aria-label="More actions"
-            >
-              <Ellipsis size={16} />
-            </button> */}
           </div>
           <div
             className="flex flex-col overflow-y-auto [overflow-anchor:none] [scrollbar-color:var(--color-slate-600)_var(--color-slate-700)] [scrollbar-width:thin]"
@@ -326,13 +340,14 @@ export function Column({ column }: { column: TColumn }) {
             <button
               type="button"
               className="flex grow flex-row gap-1 rounded p-2 hover:bg-slate-700 active:bg-slate-600"
-              onClick={() => {
-                const newCard = {
-                  id: `card:${crypto.randomUUID()}`,
-                  description: "New card",
-                };
-                dispatch(addCard({ columnId: column.id, card: newCard }));
-              }}
+              // onClick={() => {
+              //   const newCard = {
+              //     id: `card:${crypto.randomUUID()}`,
+              //     description: "New card",
+              //   };
+              //   dispatch(addCard({ columnId: column.id, card: newCard }));
+              // }}
+              onClick={handleAddCard}
             >
               <Plus size={16} />
               <div className="leading-4">Add a card</div>

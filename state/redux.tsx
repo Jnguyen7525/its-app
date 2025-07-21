@@ -46,7 +46,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { useRef } from "react";
-import boardReducer, { createInitialColumns } from "@/state/board";
+import boardReducer from "@/state/board";
 
 export const makeStore = () =>
   configureStore({

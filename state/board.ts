@@ -1,40 +1,51 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { TBoard, TColumn, TCard } from "@/shared/data";
+import { TBoard, TColumn, TCard, TCardField } from "@/shared/data";
 
 // Utility to generate initial cards
-export function createInitialColumns(): TColumn[] {
-  let count = 0;
+// export function createInitialColumns(): TColumn[] {
+//   let count = 0;
 
-  const getCards = (amount: number): TCard[] =>
-    Array.from({ length: amount }, () => ({
-      id: `card:${count++}`,
-      description: `Card ${count}`,
-    }));
+//   const getCards = (amount: number): TCard[] =>
+//     Array.from({ length: amount }, () => ({
+//       id: `card:${count++}`,
+//       description: `Card ${count}`,
+//     }));
 
-  return [
-    { id: "column:a", title: "Column A", cards: getCards(10) },
-    { id: "column:b", title: "Column B", cards: getCards(8) },
-  ];
-}
+//   return [
+//     { id: "column:a", title: "Column A", cards: getCards(10) },
+//     { id: "column:b", title: "Column B", cards: getCards(8) },
+//   ];
+// }
 
-// Initial board state
-const initialState: TBoard = {
-  columns: createInitialColumns(),
-};
+// // Initial board state
 // const initialState: TBoard = {
-//   columns: [],
+//   columns: createInitialColumns(),
 // };
+const initialState: TBoard = {
+  columns: [],
+};
 
 export const boardSlice = createSlice({
   name: "board",
   initialState,
   reducers: {
-    addColumn: (state, action: PayloadAction<{ title: string }>) => {
-      console.log("[Redux] Adding column:", action.payload.title);
+    // addColumn: (state, action: PayloadAction<{ title: string }>) => {
+    //   console.log("[Redux] Adding column:", action.payload.title);
 
+    //   state.columns.push({
+    //     id: `column:${crypto.randomUUID()}`,
+    //     title: action.payload.title,
+    //     cards: [],
+    //   });
+    // },
+    addColumn: (
+      state,
+      action: PayloadAction<{ title: string; fields: TCardField[] }>
+    ) => {
       state.columns.push({
         id: `column:${crypto.randomUUID()}`,
         title: action.payload.title,
+        fields: action.payload.fields,
         cards: [],
       });
     },
@@ -143,6 +154,23 @@ export const boardSlice = createSlice({
       const [moved] = col.cards.splice(action.payload.fromIndex, 1);
       col.cards.splice(action.payload.toIndex, 0, moved);
     },
+    updateCardValue: (
+      state,
+      action: PayloadAction<{
+        columnId: string;
+        cardId: string;
+        fieldKey: string;
+        value: string;
+      }>
+    ) => {
+      const col = state.columns.find((c) => c.id === action.payload.columnId);
+      if (!col) return;
+
+      const card = col.cards.find((c) => c.id === action.payload.cardId);
+      if (!card) return;
+
+      card.values[action.payload.fieldKey] = action.payload.value;
+    },
   },
 });
 
@@ -155,6 +183,7 @@ export const {
   moveCard,
   reorderColumns,
   reorderCardsInColumn,
+  updateCardValue,
 } = boardSlice.actions;
 
 export default boardSlice.reducer;
