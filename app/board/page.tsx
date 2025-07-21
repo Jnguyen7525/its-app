@@ -48,7 +48,8 @@ export default function Page() {
         <div className="flex flex-1 overflow-auto bg-zinc-900">
           <div className="scrollbar-thumb-rounded-3xl scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-900 flex flex-col overflow-auto border-l border-zinc-900">
             <div className="flex w-full h-full">
-              <Board initial={getInitialData()} />
+              {/* <Board initial={getInitialData()} /> */}
+              <Board /> {/* No `initial` prop needed */}
             </div>
           </div>
         </div>
