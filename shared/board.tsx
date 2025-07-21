@@ -488,6 +488,10 @@ export function Board() {
     const element = scrollableRef.current;
     invariant(element);
     const localColumns = columns; // ✅ capture snapshot early
+    if (!localColumns) {
+      console.log("no columns");
+      return;
+    }
 
     return combine(
       monitorForElements({
@@ -541,7 +545,7 @@ export function Board() {
                 return;
               }
 
-              const closestEdge = extractClosestEdge(dropTargetData);
+              // const closestEdge = extractClosestEdge(dropTargetData);
 
               // const reordered = reorderWithEdge({
               //   axis: "vertical",

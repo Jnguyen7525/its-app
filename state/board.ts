@@ -18,12 +18,12 @@ export function createInitialColumns(): TColumn[] {
 }
 
 // Initial board state
-// const initialState: TBoard = {
-//   columns: createInitialColumns(),
-// };
 const initialState: TBoard = {
-  columns: [],
+  columns: createInitialColumns(),
 };
+// const initialState: TBoard = {
+//   columns: [],
+// };
 
 export const boardSlice = createSlice({
   name: "board",
@@ -45,6 +45,23 @@ export const boardSlice = createSlice({
       const col = state.columns.find((c) => c.id === action.payload.columnId);
       if (col) {
         col.cards.push(action.payload.card);
+      }
+    },
+    deleteColumn: (state, action: PayloadAction<{ columnId: string }>) => {
+      state.columns = state.columns.filter(
+        (col) => col.id !== action.payload.columnId
+      );
+    },
+
+    deleteAllCardsInColumn: (
+      state,
+      action: PayloadAction<{ columnId: string }>
+    ) => {
+      const col = state.columns.find(
+        (col) => col.id === action.payload.columnId
+      );
+      if (col) {
+        col.cards = [];
       }
     },
     moveCard: (
@@ -123,6 +140,8 @@ export const boardSlice = createSlice({
 export const {
   addColumn,
   addCard,
+  deleteColumn,
+  deleteAllCardsInColumn,
   moveCard,
   reorderColumns,
   reorderCardsInColumn,

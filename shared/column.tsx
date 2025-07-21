@@ -38,6 +38,9 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 
+import { useAppDispatch } from "@/state/redux";
+import { addCard, deleteAllCardsInColumn, deleteColumn } from "@/state/board";
+
 type TColumnState =
   | {
       type: "is-card-over";
@@ -81,6 +84,8 @@ export function Column({ column }: { column: TColumn }) {
   const innerRef = useRef<HTMLDivElement | null>(null);
   const { settings } = useContext(SettingsContext);
   const [state, setState] = useState<TColumnState>(idle);
+
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const outer = outerFullHeightRef.current;
@@ -277,12 +282,22 @@ export function Column({ column }: { column: TColumn }) {
               <DropdownMenuContent className="bg-zinc-950 text-white border-none p-2">
                 {/* <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator /> */}
-                <DropdownMenuItem className="cursor-pointer flex items-center gap-2 text-red-500 hover:text-white hover:bg-red-500 w-full">
+                <DropdownMenuItem
+                  className="cursor-pointer flex items-center gap-2 text-red-500 hover:text-white hover:bg-red-500 w-full"
+                  onClick={() =>
+                    dispatch(deleteAllCardsInColumn({ columnId: column.id }))
+                  }
+                >
                   <Trash2 className="text-inherit" />
                   <p>Delete all tasks in this column</p>
                 </DropdownMenuItem>
 
-                <DropdownMenuItem className="cursor-pointer flex items-center gap-2 text-red-500 hover:text-white hover:bg-red-500 w-full">
+                <DropdownMenuItem
+                  className="cursor-pointer flex items-center gap-2 text-red-500 hover:text-white hover:bg-red-500 w-full"
+                  onClick={() =>
+                    dispatch(deleteColumn({ columnId: column.id }))
+                  }
+                >
                   <Trash2 className="text-inherit" />
                   <p>Delete column</p>
                 </DropdownMenuItem>
@@ -311,6 +326,13 @@ export function Column({ column }: { column: TColumn }) {
             <button
               type="button"
               className="flex grow flex-row gap-1 rounded p-2 hover:bg-slate-700 active:bg-slate-600"
+              onClick={() => {
+                const newCard = {
+                  id: `card:${crypto.randomUUID()}`,
+                  description: "New card",
+                };
+                dispatch(addCard({ columnId: column.id, card: newCard }));
+              }}
             >
               <Plus size={16} />
               <div className="leading-4">Add a card</div>
