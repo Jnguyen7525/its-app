@@ -272,7 +272,7 @@ export function Column({ column }: { column: TColumn }) {
 
   return (
     <div
-      className="flex w-72 shrink-0 select-none flex-col"
+      className="flex w-full sm:w-72 shrink-0 select-none flex-col"
       ref={outerFullHeightRef}
     >
       <div
@@ -336,10 +336,10 @@ export function Column({ column }: { column: TColumn }) {
               </div>
             ) : null}
           </div>
-          <div className="flex flex-row gap-2 p-3">
+          <div className="flex justify-between gap-2 p-3">
             <button
               type="button"
-              className="flex grow flex-row gap-1 rounded p-2 hover:bg-slate-700 active:bg-slate-600"
+              className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer w-fit"
               // onClick={() => {
               //   const newCard = {
               //     id: `card:${crypto.randomUUID()}`,
@@ -354,7 +354,7 @@ export function Column({ column }: { column: TColumn }) {
             </button>
             <button
               type="button"
-              className="rounded p-2 hover:bg-slate-700 active:bg-slate-600"
+              className="px-2 py-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
               aria-label="Create card from template"
             >
               <Copy size={16} />

@@ -120,12 +120,12 @@ export function TopBar() {
           {settings.isFPSPanelEnabled ? <FPSPanel /> : null}
           <ThemeSwitcher
             triggerContent={triggerContent}
-            className="hover:cursor-pointer px-2 py-2 z-50 bg-stone-900 rounded-md text-white  "
+            className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer px-2 py-2 z-50 bg-zinc-900  text-white  "
           />
           <button
             type="button"
             ref={settingsTriggerRef}
-            className="rounded p-2 "
+            className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
             onClick={() => setIsSettingsDialogOpen((current) => !current)}
             aria-label="toggle top bar visibility"
           >
@@ -134,7 +134,7 @@ export function TopBar() {
           <button
             type="button"
             ref={settingsTriggerRef}
-            className="rounded p-2 "
+            className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
             onClick={() => setIsSettingsDialogOpen((current) => !current)}
             aria-label="toggle top bar visibility"
           >

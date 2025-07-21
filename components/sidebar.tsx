@@ -25,10 +25,18 @@ function sidebar() {
           </div>
         </div>
         <div className="flex flex-col gap-3">
-          <div className="cursor-pointer hover:text-purple-500">Profile</div>
-          <div className="cursor-pointer hover:text-purple-500">All Boards</div>
-          <div className="cursor-pointer hover:text-purple-500">Inbox</div>
-          <div className="cursor-pointer hover:text-purple-500">Chat</div>
+          <div className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer hover:text-purple-500">
+            Profile
+          </div>
+          <div className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer hover:text-purple-500">
+            All Boards
+          </div>
+          <div className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer hover:text-purple-500">
+            Inbox
+          </div>
+          <div className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer hover:text-purple-500">
+            Chat
+          </div>
         </div>
       </div>
     </div>

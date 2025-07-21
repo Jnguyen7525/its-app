@@ -863,10 +863,10 @@ export function Board() {
 
   return (
     <div
-      className={`flex h-full flex-col ${settings.isBoardMoreObvious ? "px-32 py-20" : ""}`}
+      className={`flex h-full w-full flex-col ${settings.isBoardMoreObvious ? "px-32 py-20" : ""}`}
     >
       <div
-        className={`flex h-full flex-row gap-3 overflow-x-auto p-3 [scrollbar-color:var(--color-sky-600)_var(--color-sky-800)] [scrollbar-width:thin] ${settings.isBoardMoreObvious ? "rounded border-2 border-dashed" : ""}`}
+        className={`flex h-full flex-row gap-3 overflow-x-auto p-3 scrollbar-thumb-rounded-3xl scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-900 ${settings.isBoardMoreObvious ? "rounded border-2 border-dashed" : ""}`}
         ref={scrollableRef}
       >
         {/* {columns.map((column) => (
@@ -881,13 +881,13 @@ export function Board() {
           }}
         /> */}
         <div
-          className="flex h-full flex-row gap-3 overflow-x-auto p-3 ..."
+          className="flex h-full w-full flex-col sm:flex-row gap-3 p-3 ..."
           ref={scrollableRef}
         >
           {columns.map((column) => (
             <Column key={column.id} column={column} />
           ))}
-          <AddColumn onAdd={handleAddColumn} />
+          {/* <AddColumn onAdd={handleAddColumn} /> */}
         </div>
       </div>
     </div>

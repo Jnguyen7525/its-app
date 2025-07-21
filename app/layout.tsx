@@ -24,38 +24,33 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="flex h-screen flex-col">
-        <React.StrictMode>
-          <FathomAnalytics />{" "}
-          <SettingsContextProvider>
-            <ThemeProvider
-              themes={{
-                light: { background: "bg-white", text: "text-black" },
-                dark: { background: "bg-zinc-950", text: "text-white" },
-                blue: { background: "bg-blue-600", text: "text-white" },
-                pink: { background: "bg-pink-200", text: "text-black" },
-              }}
-              defaultTheme="dark"
-            >
-              {" "}
-              <StoreProvider>
-                <div className="flex flex-col h-full w-full">
-                  <TopBar />
+      <body className="flex h-screen flex-col scrollbar-thumb-rounded-3xl scrollbar-thin scrollbar-thumb-zinc-600 scrollbar-track-zinc-900">
+        <FathomAnalytics />
+        <SettingsContextProvider>
+          <ThemeProvider
+            themes={{
+              light: { background: "bg-white", text: "text-black" },
+              dark: { background: "bg-zinc-950", text: "text-white" },
+              blue: { background: "bg-blue-600", text: "text-white" },
+              pink: { background: "bg-pink-200", text: "text-black" },
+            }}
+            defaultTheme="dark"
+          >
+            <StoreProvider>
+              <div className="flex flex-col h-full w-full">
+                <TopBar />
 
-                  {/* <FilterBar /> */}
-                  {/* position: absolute needed for max-height:100% to be respected internally */}
-                  <div className="flex grow flex-col flex-1">
-                    {/* <div className="absolute inset-0"> */}
-                    <main className="flex-1 overflow-x-hidden  ">
-                      {children}
-                    </main>
-                    {/* </div> */}
-                  </div>
-                </div>{" "}
-              </StoreProvider>
-            </ThemeProvider>
-          </SettingsContextProvider>{" "}
-        </React.StrictMode>
+                {/* <FilterBar /> */}
+                {/* position: absolute needed for max-height:100% to be respected internally */}
+                <div className="flex grow flex-col flex-1">
+                  {/* <div className="absolute inset-0"> */}
+                  <main className="flex-1 overflow-x-hidden  ">{children}</main>
+                  {/* </div> */}
+                </div>
+              </div>
+            </StoreProvider>
+          </ThemeProvider>
+        </SettingsContextProvider>
       </body>
     </html>
   );

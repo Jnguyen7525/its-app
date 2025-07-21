@@ -9,6 +9,7 @@ import {
   Menu,
   PanelTopClose,
   PanelTopOpen,
+  Plus,
   Search,
   Settings,
   User2,
@@ -19,6 +20,16 @@ import { usePathname } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import { FPSPanel } from "./fps-panel";
 import { SettingsDialog } from "./settings-dialog";
+import AddColumn from "./add-column";
+import { addColumn } from "@/state/board";
+import { useAppDispatch, useAppSelector } from "@/state/redux";
+import { TCardField } from "@/shared/data";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@radix-ui/react-dropdown-menu";
+import { DropdownMenuPortal } from "./ui/dropdown-menu";
 
 type TRoute = { title: string; href: string };
 
@@ -36,6 +47,20 @@ export function FilterBar() {
   const settingsDialogRef = useRef<HTMLDivElement | null>(null);
   const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const { settings } = useContext(SettingsContext);
+  const [showAddColumn, setShowAddColumn] = useState(true);
+
+  const dispatch = useAppDispatch();
+  const columns = useAppSelector((state) => state.board.columns);
+
+  // const handleAddColumn = (title: string) => {
+  //   console.log("[Board] handleAddColumn:", title);
+
+  //   dispatch(addColumn({ title }));
+  // };
+  const handleAddColumn = (title: string, fields: TCardField[]) => {
+    console.log("[Board] handleAddColumn:", title, fields);
+    dispatch(addColumn({ title, fields }));
+  };
 
   useEffect(() => {
     return bindAll(window, [
@@ -84,39 +109,66 @@ export function FilterBar() {
   }, [isFilterBarExpanded, isSettingsDialogOpen]);
 
   return (
-    <>
-      <header
-        className={`flex h-14 flex-row items-center justify-between gap-1 border-b border-zinc-900 px-3`}
+    <div
+      className={`flex h-14 flex-row items-center justify-between gap-1 border-b border-zinc-900 px-3`}
+    >
+      <div
+        className={`flex shrink gap-3 rounded p-2 leading-none sm:text-lg sm:leading-none items-center`}
       >
-        <div
-          className={`flex shrink gap-3 rounded p-2 leading-none sm:text-lg sm:leading-none items-center`}
+        <span>board name</span>
+        <FilterIcon
+          size={28}
+          className="text-purple-500 p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
+        />
+        <Search
+          size={28}
+          className="text-purple-500 p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
+              aria-label="Add Column"
+            >
+              <Plus size={24} className="text-green-500" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="bottom"
+            align="start"
+            className="p-2 bg-zinc-950 border border-zinc-800 rounded-lg shadow-md w-fit z-50"
+          >
+            <AddColumn
+              onAdd={(title, fields) => {
+                handleAddColumn(title, fields);
+                // Optionally programmatically close dropdown here, if needed
+              }}
+            />
+          </DropdownMenuContent>{" "}
+        </DropdownMenu>
+      </div>
+      <div className="z-1 flex items-center justify-center gap-1">
+        <button
+          type="button"
+          ref={settingsTriggerRef}
+          className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
+          onClick={() => setIsSettingsDialogOpen((current) => !current)}
+          aria-label="toggle top bar visibility"
         >
-          <span>board name</span>
-          <FilterIcon className="text-purple-500" />
-          <Search className="text-purple-500" />
-        </div>
-        <div className="z-1 flex items-center justify-center gap-1">
-          <button
-            type="button"
-            ref={settingsTriggerRef}
-            className="rounded p-2 "
-            onClick={() => setIsSettingsDialogOpen((current) => !current)}
-            aria-label="toggle top bar visibility"
-          >
-            <User2 size={24} />
-          </button>
+          <User2 size={24} />
+        </button>
 
-          <button
-            type="button"
-            ref={settingsTriggerRef}
-            className="rounded p-2 "
-            onClick={() => setIsSettingsDialogOpen((current) => !current)}
-            aria-label="toggle top bar visibility"
-          >
-            <Menu size={24} />
-          </button>
-        </div>
-      </header>
-    </>
+        <button
+          type="button"
+          ref={settingsTriggerRef}
+          className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
+          onClick={() => setIsSettingsDialogOpen((current) => !current)}
+          aria-label="toggle top bar visibility"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
+    </div>
   );
 }
