@@ -47,6 +47,15 @@ export const boardSlice = createSlice({
         col.cards.push(action.payload.card);
       }
     },
+    deleteCard: (
+      state,
+      action: PayloadAction<{ columnId: string; cardId: string }>
+    ) => {
+      const col = state.columns.find((c) => c.id === action.payload.columnId);
+      if (!col) return;
+
+      col.cards = col.cards.filter((card) => card.id !== action.payload.cardId);
+    },
     deleteColumn: (state, action: PayloadAction<{ columnId: string }>) => {
       state.columns = state.columns.filter(
         (col) => col.id !== action.payload.columnId
@@ -140,6 +149,7 @@ export const boardSlice = createSlice({
 export const {
   addColumn,
   addCard,
+  deleteCard,
   deleteColumn,
   deleteAllCardsInColumn,
   moveCard,
