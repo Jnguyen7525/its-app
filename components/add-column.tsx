@@ -38,36 +38,31 @@ import { useEffect, useState } from "react";
 
 export default function AddColumn({
   onAdd,
+  onClose,
 }: {
-  onAdd: (title: string, fields: TCardField[]) => void;
+  onAdd: (title: string) => void;
+  onClose: () => void;
 }) {
   const [title, setTitle] = useState("");
 
-  const [fields, setFields] = useState<TCardField[]>([]);
-  const [newFieldLabel, setNewFieldLabel] = useState("");
+  // const [fields, setFields] = useState<TCardField[]>([]);
+  // const [newFieldLabel, setNewFieldLabel] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (title.trim() && fields.length > 0) {
-      const normalized: TCardField[] = fields.map((f) => ({
-        key: f.label.toLowerCase().replace(/\s+/g, "_"),
-        label: f.label,
-        type: "textarea", // ✅ this is the literal type now
-      }));
-      onAdd(title.trim(), normalized);
+    if (title.trim().length > 0) {
+      onAdd(title.trim());
       setTitle("");
-      setFields([]);
-      setNewFieldLabel("");
     }
   };
 
-  const handleAddField = () => {
-    const label = newFieldLabel.trim();
-    if (label) {
-      setFields([...fields, { key: "", label, type: "textarea" }]);
-      setNewFieldLabel("");
-    }
-  };
+  // const handleAddField = () => {
+  //   const label = newFieldLabel.trim();
+  //   if (label) {
+  //     setFields([...fields, { key: "", label, type: "textarea" }]);
+  //     setNewFieldLabel("");
+  //   }
+  // };
 
   useEffect(() => {
     console.log("[AddColumn] mounted");
@@ -86,7 +81,7 @@ export default function AddColumn({
         className="w-full px-2 py-1 mb-2 rounded-md bg-zinc-800 text-white placeholder:text-zinc-500 outline-hidden transition-colors duration-200 hover:bg-zinc-700"
       />
 
-      <div className="mb-2">
+      {/* <div className="mb-2">
         <label className="block text-sm font-medium mb-1">Card fields:</label>
         {fields.map((field, index) => (
           <div key={index} className="mb-1 text-sm">
@@ -109,7 +104,7 @@ export default function AddColumn({
             Add Field
           </button>
         </div>
-      </div>
+      </div> */}
 
       <div className="flex gap-2 mt-4">
         <button
@@ -123,8 +118,9 @@ export default function AddColumn({
           type="button"
           onClick={() => {
             setTitle("");
-            setFields([]);
-            setNewFieldLabel("");
+            // setFields([]);
+            // setNewFieldLabel("");
+            onClose(); // ✅ close form in FilterBar
           }}
           className="flex-1 py-1 rounded-md bg-red-500 hover:bg-red-700 transition-colors duration-200 cursor-pointer text-white"
         >

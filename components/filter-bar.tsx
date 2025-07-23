@@ -47,19 +47,18 @@ export function FilterBar() {
   const settingsDialogRef = useRef<HTMLDivElement | null>(null);
   const settingsTriggerRef = useRef<HTMLButtonElement | null>(null);
   const { settings } = useContext(SettingsContext);
-  const [showAddColumn, setShowAddColumn] = useState(true);
+  const [showAddColumn, setShowAddColumn] = useState(false);
 
   const dispatch = useAppDispatch();
   const columns = useAppSelector((state) => state.board.columns);
 
-  // const handleAddColumn = (title: string) => {
-  //   console.log("[Board] handleAddColumn:", title);
-
-  //   dispatch(addColumn({ title }));
+  // const handleAddColumn = (title: string, fields: TCardField[]) => {
+  //   console.log("[Board] handleAddColumn:", title, fields);
+  //   dispatch(addColumn({ title, fields }));
   // };
-  const handleAddColumn = (title: string, fields: TCardField[]) => {
-    console.log("[Board] handleAddColumn:", title, fields);
-    dispatch(addColumn({ title, fields }));
+  const handleAddColumn = (title: string) => {
+    console.log("[Board] handleAddColumn:", title);
+    dispatch(addColumn({ title }));
   };
 
   useEffect(() => {
@@ -124,7 +123,7 @@ export function FilterBar() {
           size={28}
           className="text-purple-500 p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
         />
-        <DropdownMenu>
+        <DropdownMenu open={showAddColumn} onOpenChange={setShowAddColumn}>
           <DropdownMenuTrigger asChild>
             <button
               type="button"
@@ -140,12 +139,13 @@ export function FilterBar() {
             className="p-2 bg-zinc-950 border border-zinc-800 rounded-lg shadow-md w-fit z-50"
           >
             <AddColumn
-              onAdd={(title, fields) => {
-                handleAddColumn(title, fields);
-                // Optionally programmatically close dropdown here, if needed
+              onAdd={(title) => {
+                handleAddColumn(title);
+                setShowAddColumn(false); // ✅ close on create
               }}
+              onClose={() => setShowAddColumn(false)} // ✅ close on cancel
             />
-          </DropdownMenuContent>{" "}
+          </DropdownMenuContent>
         </DropdownMenu>
       </div>
       <div className="z-1 flex items-center justify-center gap-1">

@@ -47,6 +47,7 @@ type TColumnState =
       type: "is-card-over";
       isOverChildCard: boolean;
       dragging: DOMRect;
+      draggedCard?: TCard; // ✅ add this
     }
   | {
       type: "is-column-over";
@@ -78,6 +79,9 @@ const idle = { type: "idle" } satisfies TColumnState;
 //   ));
 // });
 const CardList = memo(function CardList({ column }: { column: TColumn }) {
+  console.log(
+    `count cards in cardlist: ${column.title} ${column.cards.length}`
+  );
   return column.cards.map((card) => (
     <Card key={card.id} card={card} column={column} /> // ✅ pass entire column
   ));
@@ -121,6 +125,7 @@ export function Column({ column }: { column: TColumn }) {
         type: "is-card-over",
         dragging: data.rect,
         isOverChildCard,
+        draggedCard: data.card, // ✅ store card info here
       };
       // optimization - don't update state if we don't need to.
       setState((current) => {
@@ -195,8 +200,15 @@ export function Column({ column }: { column: TColumn }) {
         },
         onDropTargetChange({ source, location }) {
           if (isCardData(source.data)) {
+            if (source.data.card.copyMode) {
+              console.log(
+                `[Column.tsx] copyMode is ON — skipping position update`
+              );
+              return; // ✅ don't call setIsCardOver
+            }
+
+            // ✅ safe to update shadow state for movement
             setIsCardOver({ data: source.data, location });
-            return;
           }
         },
         onDragLeave({ source }) {
@@ -208,7 +220,13 @@ export function Column({ column }: { column: TColumn }) {
           }
           setState(idle);
         },
-        onDrop() {
+        onDrop({ source }) {
+          // if (source.data.card.copyMode) {
+          //   console.log(`[Column.tsx] copyMode is ON — skipping column drop`);
+          //   setState(idle);
+          //   return;
+          // }
+
           setState(idle);
         },
       }),
@@ -256,16 +274,18 @@ export function Column({ column }: { column: TColumn }) {
   }, [column, settings]);
 
   const handleAddCard = () => {
+    // const newCard: TCard = {
+    //   id: `card:${crypto.randomUUID()}`,
+    //   values: {},
+    // };
     const newCard: TCard = {
       id: `card:${crypto.randomUUID()}`,
-      values: column.fields.reduce(
-        (acc, field) => {
-          acc[field.key] = "";
-          return acc;
-        },
-        {} as Record<string, string>
-      ),
+      values: {},
+      copyMode: false,
+      createdInColumnId: column.title, // ⬅️ track origin
+      createdAt: Date.now(), // ⬅️ audit timestamp
     };
+    console.log("column.tsx handleaddcard:", newCard);
 
     dispatch(addCard({ columnId: column.id, card: newCard }));
   };

@@ -3,6 +3,8 @@
 //   description: string;
 // };
 
+import { DropTargetRecord } from "@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types";
+
 // export type TColumn = {
 //   id: string;
 //   title: string;
@@ -17,6 +19,10 @@ export type TCardField = {
 export type TCard = {
   id: string;
   values: Record<string, string>; // keyed by field key
+  copyMode?: boolean; // ✅ default to false
+  createdInColumnId?: string; // 🆕 optional metadata
+  createdAt?: number; // Unix timestamp is simple and fast
+  mergedCards?: TCard[]; // ⬅️ Track full merged card objects here
 };
 
 export type TColumn = {
@@ -91,6 +97,12 @@ export function getCardDropTargetData({
   };
 }
 
+export function getCardDropTargetDataSafe(
+  target: DropTargetRecord | undefined
+): TCardDropTargetData | undefined {
+  return target && isCardDropTargetData(target.data) ? target.data : undefined;
+}
+
 const columnKey = Symbol("column");
 export type TColumnData = {
   [columnKey]: true;
@@ -104,6 +116,13 @@ export function getColumnData({
     [columnKey]: true,
     column,
   };
+}
+
+export function getColumnTitleById(
+  board: TBoard,
+  columnId: string
+): string | undefined {
+  return board.columns.find((col) => col.id === columnId)?.title;
 }
 
 export function isColumnData(

@@ -460,10 +460,10 @@ export function Board() {
 
   //   dispatch(addColumn({ title }));
   // };
-  const handleAddColumn = (title: string, fields: TCardField[]) => {
-    console.log("[Board] handleAddColumn:", title, fields);
-    dispatch(addColumn({ title, fields }));
-  };
+  // const handleAddColumn = (title: string, fields: TCardField[]) => {
+  //   console.log("[Board] handleAddColumn:", title, fields);
+  //   dispatch(addColumn({ title, fields }));
+  // };
 
   useEffect(() => {
     console.log("Board mounted");

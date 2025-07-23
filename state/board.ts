@@ -29,23 +29,11 @@ export const boardSlice = createSlice({
   name: "board",
   initialState,
   reducers: {
-    // addColumn: (state, action: PayloadAction<{ title: string }>) => {
-    //   console.log("[Redux] Adding column:", action.payload.title);
-
-    //   state.columns.push({
-    //     id: `column:${crypto.randomUUID()}`,
-    //     title: action.payload.title,
-    //     cards: [],
-    //   });
-    // },
-    addColumn: (
-      state,
-      action: PayloadAction<{ title: string; fields: TCardField[] }>
-    ) => {
+    addColumn: (state, action: PayloadAction<{ title: string }>) => {
       state.columns.push({
         id: `column:${crypto.randomUUID()}`,
         title: action.payload.title,
-        fields: action.payload.fields,
+        fields: [], // ⬅️ start empty
         cards: [],
       });
     },
@@ -93,6 +81,18 @@ export const boardSlice = createSlice({
         destinationIndex: number;
       }>
     ) => {
+      // check if copyMode is on don't move the card
+      const sourceCol = state.columns.find(
+        (c) => c.id === action.payload.fromColumnId
+      );
+      const cardCopy = sourceCol?.cards.find(
+        (c) => c.id === action.payload.cardId
+      );
+      if (cardCopy?.copyMode) {
+        console.log("[MoveCard] Skipping move — copy mode is enabled");
+        return;
+      }
+
       const fromIndex = state.columns.findIndex(
         (c) => c.id === action.payload.fromColumnId
       );
@@ -171,6 +171,111 @@ export const boardSlice = createSlice({
 
       card.values[action.payload.fieldKey] = action.payload.value;
     },
+
+    // mergeCardIntoCard: (
+    //   state,
+    //   action: PayloadAction<{
+    //     sourceColumnId: string;
+    //     sourceCardId: string;
+    //     targetColumnId: string;
+    //     targetCardId: string;
+    //     preserveSource?: boolean;
+    //   }>
+    // ) => {
+    //   const sourceCol = state.columns.find(
+    //     (c) => c.id === action.payload.sourceColumnId
+    //   );
+    //   const targetCol = state.columns.find(
+    //     (c) => c.id === action.payload.targetColumnId
+    //   );
+    //   if (!sourceCol || !targetCol) return;
+
+    //   const source = sourceCol.cards.find(
+    //     (c) => c.id === action.payload.sourceCardId
+    //   );
+    //   const target = targetCol.cards.find(
+    //     (c) => c.id === action.payload.targetCardId
+    //   );
+    //   if (!source || !target) return;
+
+    //   // ✅ Deep clone source card's original values before mutating anything
+    //   const sourceValuesSnapshot: Record<string, string> = JSON.parse(
+    //     JSON.stringify(source.values)
+    //   );
+
+    //   // ✅ Merge into target using frozen snapshot
+    //   Object.entries(sourceValuesSnapshot).forEach(([key, value]) => {
+    //     if (!target.values[key]) {
+    //       target.values[key] = value;
+    //     }
+    //   });
+
+    //   // ✅ Remove original only if copy mode is OFF
+    //   if (!action.payload.preserveSource) {
+    //     sourceCol.cards = sourceCol.cards.filter((c) => c.id !== source.id);
+    //   }
+    // },
+    mergeCardIntoCard: (
+      state,
+      action: PayloadAction<{
+        sourceColumnId: string;
+        sourceCardId: string;
+        targetColumnId: string;
+        targetCardId: string;
+        preserveSource: boolean;
+      }>
+    ) => {
+      const targetCol = state.columns.find(
+        (c) => c.id === action.payload.targetColumnId
+      );
+      const targetCard = targetCol?.cards.find(
+        (c) => c.id === action.payload.targetCardId
+      );
+
+      const sourceCol = state.columns.find(
+        (c) => c.id === action.payload.sourceColumnId
+      );
+      const sourceCard = sourceCol?.cards.find(
+        (c) => c.id === action.payload.sourceCardId
+      );
+
+      if (!sourceCard || !targetCard) return;
+
+      // ✅ Initialize if needed
+      if (!targetCard.mergedCards) {
+        targetCard.mergedCards = [];
+      }
+
+      // ✅ Push source card into mergedCards, skip if already exists
+      const alreadyMerged = targetCard.mergedCards.some(
+        (c) => c.id === sourceCard.id
+      );
+      if (!alreadyMerged) {
+        targetCard.mergedCards.push({ ...sourceCard });
+      }
+
+      // ✅ Optionally merge values if they don’t duplicate existing ones
+      // Object.entries(sourceCard.values).forEach(([key, value]) => {
+      //   if (!targetCard.values[key]) {
+      //     targetCard.values[key] = value;
+      //   }
+      // });
+
+      // ✅ Optionally delete sourceCard from original column
+      if (!action.payload.preserveSource && sourceCol) {
+        sourceCol.cards = sourceCol.cards.filter((c) => c.id !== sourceCard.id);
+      }
+    },
+    toggleCopyMode: (
+      state,
+      action: PayloadAction<{ columnId: string; cardId: string }>
+    ) => {
+      const col = state.columns.find((c) => c.id === action.payload.columnId);
+      if (!col) return;
+      const card = col.cards.find((c) => c.id === action.payload.cardId);
+      if (!card) return;
+      card.copyMode = !card.copyMode;
+    },
   },
 });
 
@@ -184,6 +289,8 @@ export const {
   reorderColumns,
   reorderCardsInColumn,
   updateCardValue,
+  mergeCardIntoCard,
+  toggleCopyMode,
 } = boardSlice.actions;
 
 export default boardSlice.reducer;
