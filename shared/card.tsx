@@ -24,6 +24,8 @@ import {
   isCardData,
   isCardDropTargetData,
   isDraggingACard,
+  isDraggingAMergedCard,
+  isMergedCardData,
   TCard,
   TColumn,
 } from "./data";
@@ -32,8 +34,11 @@ import { isShallowEqual } from "./is-shallow-equal";
 import { useAppDispatch } from "@/state/redux";
 import {
   addCard,
+  clearMergedCards,
   deleteCard,
+  removeMergedCard,
   reorderCardsInColumn,
+  reorderMergedCards,
   toggleCopyMode,
   updateCardValue,
 } from "@/state/board";
@@ -95,12 +100,14 @@ export function CardDisplay({
   state,
   outerRef,
   innerRef,
+  dragHandleRef,
 }: {
   card: TCard;
   column: TColumn;
   state: TCardState;
   outerRef?: React.MutableRefObject<HTMLDivElement | null>;
   innerRef?: MutableRefObject<HTMLDivElement | null>;
+  dragHandleRef?: MutableRefObject<HTMLDivElement | null>;
 }) {
   const dispatch = useAppDispatch();
 
@@ -152,6 +159,12 @@ export function CardDisplay({
       {state.type === "is-over" && state.closestEdge === "top" && (
         <CardShadow dragging={state.dragging} />
       )}
+      <div
+        ref={dragHandleRef}
+        className="cursor-grab bg-zinc-800 text-white text-xs font-semibold px-3 py-1 rounded-md hover:bg-zinc-700 transition-colors"
+      >
+        Drag to move card
+      </div>
       <div
         className={`relative rounded text-slate-300 ${innerStyles[state.type]}`}
         ref={innerRef}
@@ -258,24 +271,47 @@ export function CardDisplay({
         </div>
         {/* merged cards */}
         {card.mergedCards && card.mergedCards.length > 0 && (
-          <div className="mt-4 border-t border-zinc-800 pt-2">
-            <h4 className="text-sm text-zinc-500 mb-2">Merged Work Orders</h4>
-            {card.mergedCards.map((mergedCard) => (
-              <div
-                key={mergedCard.id}
-                className="bg-zinc-900 p-2 rounded mb-2 text-xs"
+          <div className="mt-4 pt-3 rounded-md bg-zinc-950 border border-zinc-800 shadow-inner">
+            <div className="px-2 py-1 text-xs text-zinc-500 border-b border-zinc-700">
+              Work Orders Assigned
+            </div>
+
+            {/* Subcolumn for merged cards */}
+            <div className="p-2 flex flex-col gap-2">
+              <button
+                className="text-xs text-red-500 hover:text-white px-2 py-1 mt-2"
+                onClick={() => {
+                  dispatch(
+                    clearMergedCards({ columnId: column.id, cardId: card.id })
+                  );
+                }}
               >
-                <div className="text-slate-400 italic mb-1">
-                  Origin: {mergedCard.createdInColumnId ?? "unknown"}
-                </div>
-                {Object.entries(mergedCard.values).map(([key, value]) => (
-                  <div key={key} className="mb-1">
-                    <span className="font-semibold text-white">{key}:</span>{" "}
-                    <span className="text-slate-300">{value}</span>
-                  </div>
-                ))}
-              </div>
-            ))}
+                Clear All Merged Work Orders
+              </button>
+
+              {card.mergedCards.map((mergedCard, index) => (
+                // <MiniCard
+                //   key={mergedCard.id}
+                //   card={mergedCard}
+                //   onDelete={() => {
+                //     dispatch(
+                //       removeMergedCard({
+                //         columnId: column.id,
+                //         parentCardId: card.id,
+                //         mergedCardId: mergedCard.id,
+                //       })
+                //     );
+                //   }}
+                // />
+                <MergedCard
+                  key={mergedCard.id}
+                  card={mergedCard}
+                  parentCardId={card.id}
+                  columnId={column.id}
+                  index={index}
+                />
+              ))}
+            </div>
           </div>
         )}
         {/* Add new field */}
@@ -318,8 +354,12 @@ export function CardDisplay({
             const newCard: TCard = {
               id: `card:${crypto.randomUUID()}`,
               values: Object.fromEntries(fieldKeys.map((key) => [key, ""])),
+              copyMode: false,
+              createdInColumnId: column.title, // ⬅️ track origin consistently
+              createdAt: Date.now(), // ⬅️ preserve audit info
             };
 
+            console.log("[CardDisplay.tsx] Copy Schema - new card:", newCard);
             dispatch(addCard({ columnId: column.id, card: newCard }));
           }}
         >
@@ -337,6 +377,9 @@ export function CardDisplay({
 export function Card({ card, column }: { card: TCard; column: TColumn }) {
   const outerRef = useRef<HTMLDivElement | null>(null);
   const innerRef = useRef<HTMLDivElement | null>(null);
+
+  const dragHandleRef = useRef<HTMLDivElement | null>(null);
+
   const [state, setState] = useState<TCardState>(idle);
   const dispatch = useAppDispatch();
 
@@ -347,7 +390,8 @@ export function Card({ card, column }: { card: TCard; column: TColumn }) {
 
     return combine(
       draggable({
-        element: inner,
+        // element: inner,
+        element: dragHandleRef.current!,
         getInitialData: ({ element }) =>
           getCardData({
             card,
@@ -496,6 +540,7 @@ export function Card({ card, column }: { card: TCard; column: TColumn }) {
       <CardDisplay
         outerRef={outerRef}
         innerRef={innerRef}
+        dragHandleRef={dragHandleRef}
         state={state}
         card={card}
         column={column}
@@ -507,5 +552,170 @@ export function Card({ card, column }: { card: TCard; column: TColumn }) {
           )
         : null}
     </>
+  );
+}
+
+// export function MiniCard({
+//   card,
+//   onDelete,
+// }: {
+//   card: TCard;
+//   onDelete?: () => void;
+// }) {
+//   return (
+//     <div className="bg-zinc-900 p-2 rounded mb-2 text-xs border border-zinc-700 shadow-sm">
+//       <div className="flex justify-between items-center mb-2">
+//         <div className="italic text-slate-400">
+//           Origin: {card.createdInColumnId ?? "unknown"}
+//         </div>
+//         {onDelete && (
+//           <button
+//             className="text-red-500 hover:text-white"
+//             onClick={onDelete}
+//             aria-label="Delete merged card"
+//           >
+//             <Trash2 size={14} />
+//           </button>
+//         )}
+//       </div>
+//       {Object.entries(card.values).map(([key, value]) => (
+//         <div key={key} className="mb-1">
+//           <span className="font-semibold text-white">{key}:</span>{" "}
+//           <span className="text-slate-300">{value}</span>
+//         </div>
+//       ))}
+//     </div>
+//   );
+// }
+
+export function MergedCard({
+  card,
+  parentCardId,
+  columnId,
+  index,
+}: {
+  card: TCard;
+  parentCardId: string;
+  columnId: string;
+  index: number;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [state, setState] = useState<TCardState>(idle);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    return draggable({
+      element: el,
+      getInitialData: ({ element }) => ({
+        type: "merged-card",
+        card,
+        index,
+        rect: element.getBoundingClientRect(),
+        parentCardId,
+        columnId,
+      }),
+      onDragStart: () => setState({ type: "is-dragging" }),
+      onDrop: () => setState(idle),
+    });
+  }, [card, index, parentCardId, columnId]);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    return dropTargetForElements({
+      element: el,
+      getIsSticky: () => true,
+      canDrop({ source }) {
+        return (
+          source.data.type === "merged-card" &&
+          source.data.parentCardId === parentCardId
+        );
+      },
+      getData: ({ element, input }) =>
+        attachClosestEdge(
+          { card }, // ⬅️ user-defined metadata
+          {
+            element,
+            input,
+            allowedEdges: ["top", "bottom"],
+          }
+        ),
+
+      onDrag({ source, self }) {
+        // if (source.data.card.id === card.id) return;
+        if (!isDraggingAMergedCard(source.data)) return;
+        if (source.data.card.id === card.id) return;
+
+        const closestEdge = extractClosestEdge(self.data);
+        if (!closestEdge) return;
+
+        const proposed: TCardState = {
+          type: "is-over",
+          dragging: source.data.rect,
+          closestEdge,
+        };
+        setState((current) =>
+          isShallowEqual(proposed, current) ? current : proposed
+        );
+      },
+      onDrop({ source }) {
+        // if (source.data.card.id === card.id) return;
+        if (!isMergedCardData(source.data)) return;
+        if (source.data.card.id === card.id) return;
+
+        dispatch(
+          reorderMergedCards({
+            columnId,
+            cardId: parentCardId,
+            fromIndex: source.data.index,
+            toIndex: index,
+          })
+        );
+        setState(idle);
+      },
+      onDragLeave() {
+        setState(idle);
+      },
+    });
+  }, [card, index, parentCardId, columnId]);
+
+  return (
+    <div
+      ref={ref}
+      className={`p-2 rounded bg-zinc-900 border border-zinc-700 text-xs shadow ${
+        state.type === "is-over" ? "ring ring-blue-500" : ""
+      }`}
+    >
+      <div className="flex justify-between items-center mb-2">
+        <div className="italic text-slate-400">
+          Origin: {card.createdInColumnId ?? "unknown"}
+        </div>
+        <button
+          onClick={() =>
+            dispatch(
+              removeMergedCard({
+                columnId,
+                parentCardId,
+                mergedCardId: card.id,
+              })
+            )
+          }
+          aria-label="Delete"
+          className="text-red-500 hover:text-white"
+        >
+          <Trash2 size={14} />
+        </button>
+      </div>
+      {Object.entries(card.values).map(([key, value]) => (
+        <div key={key} className="mb-1">
+          <span className="font-semibold text-white">{key}:</span>{" "}
+          <span className="text-slate-300">{value}</span>
+        </div>
+      ))}
+    </div>
   );
 }

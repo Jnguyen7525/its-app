@@ -25,6 +25,13 @@ const initialState: TBoard = {
   columns: [],
 };
 
+function reorderArray<T>(array: T[], fromIndex: number, toIndex: number): T[] {
+  const updated = [...array];
+  const [item] = updated.splice(fromIndex, 1);
+  updated.splice(toIndex, 0, item);
+  return updated;
+}
+
 export const boardSlice = createSlice({
   name: "board",
   initialState,
@@ -276,6 +283,62 @@ export const boardSlice = createSlice({
       if (!card) return;
       card.copyMode = !card.copyMode;
     },
+    removeMergedCard: (
+      state,
+      action: PayloadAction<{
+        columnId: string;
+        parentCardId: string;
+        mergedCardId: string;
+      }>
+    ) => {
+      const column = state.columns.find(
+        (c) => c.id === action.payload.columnId
+      );
+      const parent = column?.cards.find(
+        (c) => c.id === action.payload.parentCardId
+      );
+      if (parent?.mergedCards) {
+        parent.mergedCards = parent.mergedCards.filter(
+          (c) => c.id !== action.payload.mergedCardId
+        );
+      }
+    },
+    clearMergedCards: (
+      state,
+      action: PayloadAction<{
+        columnId: string;
+        cardId: string;
+      }>
+    ) => {
+      const column = state.columns.find(
+        (c) => c.id === action.payload.columnId
+      );
+      const card = column?.cards.find((c) => c.id === action.payload.cardId);
+      if (card) {
+        card.mergedCards = [];
+      }
+    },
+    reorderMergedCards: (
+      state,
+      action: PayloadAction<{
+        columnId: string;
+        cardId: string;
+        fromIndex: number;
+        toIndex: number;
+      }>
+    ) => {
+      const column = state.columns.find(
+        (c) => c.id === action.payload.columnId
+      );
+      const card = column?.cards.find((c) => c.id === action.payload.cardId);
+      if (card?.mergedCards) {
+        card.mergedCards = reorderArray(
+          card.mergedCards,
+          action.payload.fromIndex,
+          action.payload.toIndex
+        );
+      }
+    },
   },
 });
 
@@ -291,6 +354,9 @@ export const {
   updateCardValue,
   mergeCardIntoCard,
   toggleCopyMode,
+  removeMergedCard,
+  clearMergedCards,
+  reorderMergedCards,
 } = boardSlice.actions;
 
 export default boardSlice.reducer;

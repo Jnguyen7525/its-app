@@ -138,3 +138,40 @@ export function isDraggingAColumn({
 }): boolean {
   return isColumnData(source.data);
 }
+
+export function isDraggingAMergedCard(data: unknown): data is {
+  card: TCard;
+  rect: DOMRect;
+  index: number;
+  parentCardId: string;
+  columnId: string;
+} {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "card" in data &&
+    "rect" in data &&
+    "index" in data &&
+    "parentCardId" in data &&
+    "columnId" in data
+  );
+}
+
+export function isMergedCardData(data: unknown): data is {
+  type: "merged-card";
+  card: TCard;
+  index: number;
+  parentCardId: string;
+  columnId: string;
+  rect: DOMRect;
+} {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "type" in data &&
+    (data as any).type === "merged-card" &&
+    "card" in data &&
+    "index" in data &&
+    "parentCardId" in data
+  );
+}
