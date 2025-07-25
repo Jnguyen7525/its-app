@@ -42,7 +42,7 @@ import {
   toggleCopyMode,
   updateCardValue,
 } from "@/state/board";
-import { Copy, Trash2 } from "lucide-react";
+import { Copy, Pencil, Trash2 } from "lucide-react";
 
 import { mergeCardIntoCard } from "@/state/board";
 import { Switch } from "@/components/ui/switch";
@@ -628,39 +628,6 @@ export function Card({ card, column }: { card: TCard; column: TColumn }) {
   );
 }
 
-// export function MiniCard({
-//   card,
-//   onDelete,
-// }: {
-//   card: TCard;
-//   onDelete?: () => void;
-// }) {
-//   return (
-//     <div className="bg-zinc-900 p-2 rounded mb-2 text-xs border border-zinc-700 shadow-sm">
-//       <div className="flex justify-between items-center mb-2">
-//         <div className="italic text-slate-400">
-//           Origin: {card.createdInColumnId ?? "unknown"}
-//         </div>
-//         {onDelete && (
-//           <button
-//             className="text-red-500 hover:text-white"
-//             onClick={onDelete}
-//             aria-label="Delete merged card"
-//           >
-//             <Trash2 size={14} />
-//           </button>
-//         )}
-//       </div>
-//       {Object.entries(card.values).map(([key, value]) => (
-//         <div key={key} className="mb-1">
-//           <span className="font-semibold text-white">{key}:</span>{" "}
-//           <span className="text-slate-300">{value}</span>
-//         </div>
-//       ))}
-//     </div>
-//   );
-// }
-
 export function MergedCard({
   card,
   parentCardId,
@@ -767,21 +734,38 @@ export function MergedCard({
         <div className="italic text-slate-400">
           Origin: {card.createdInColumnId ?? "unknown"}
         </div>
-        <button
-          onClick={() =>
-            dispatch(
-              removeMergedCard({
-                columnId,
-                parentCardId,
-                mergedCardId: card.id,
-              })
-            )
-          }
-          aria-label="Delete"
-          className="text-red-500 hover:text-white cursor-pointer"
-        >
-          <Trash2 size={14} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() =>
+              dispatch(
+                removeMergedCard({
+                  columnId,
+                  parentCardId,
+                  mergedCardId: card.id,
+                })
+              )
+            }
+            aria-label="Edit"
+            className="text-blue-500 hover:text-white cursor-pointer"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            onClick={() =>
+              dispatch(
+                removeMergedCard({
+                  columnId,
+                  parentCardId,
+                  mergedCardId: card.id,
+                })
+              )
+            }
+            aria-label="Delete"
+            className="text-red-500 hover:text-white cursor-pointer"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       </div>
       {Object.entries(card.values).map(([key, value]) => (
         <div key={key} className="mb-1">
