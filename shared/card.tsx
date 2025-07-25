@@ -42,7 +42,7 @@ import {
   toggleCopyMode,
   updateCardValue,
 } from "@/state/board";
-import { Trash2 } from "lucide-react";
+import { Copy, Trash2 } from "lucide-react";
 
 import { mergeCardIntoCard } from "@/state/board";
 import { Switch } from "@/components/ui/switch";
@@ -71,8 +71,12 @@ type TCardState =
 
 const idle: TCardState = { type: "idle" };
 
+// const innerStyles: { [Key in TCardState["type"]]?: string } = {
+//   idle: "hover:outline-solid hover:outline-1 outline-neutral-50 cursor-grab",
+//   "is-dragging": "opacity-40",
+// };
 const innerStyles: { [Key in TCardState["type"]]?: string } = {
-  idle: "hover:outline-solid hover:outline-1 outline-neutral-50 cursor-grab",
+  idle: "hover:outline-solid hover:outline-1 outline-purple-500",
   "is-dragging": "opacity-40",
 };
 
@@ -112,6 +116,8 @@ export function CardDisplay({
   const dispatch = useAppDispatch();
 
   const [newFieldLabel, setNewFieldLabel] = useState("");
+  const [isDragBarHovered, setIsDragBarHovered] = useState(false);
+
   const defaultKeys = column.fields.map((f) => f.key);
   const allKeys = Object.keys(card.values); // no assumptions
   const customKeys = allKeys.filter((key) => !defaultKeys.includes(key));
@@ -127,26 +133,93 @@ export function CardDisplay({
   }, [card, column.id]);
 
   useEffect(() => {
-    if (!mergeDropRef.current) return;
+    // if (!mergeDropRef.current) return;
+    if (!innerRef || !innerRef.current) return;
 
     return dropTargetForElements({
-      element: mergeDropRef.current,
+      // element: mergeDropRef.current,
+      element: innerRef.current,
       getIsSticky: () => true,
-      canDrop: isDraggingACard,
+      // canDrop: isDraggingACard,
+      canDrop({ source }) {
+        if (!isCardData(source.data)) return false;
+
+        const sourceCard = source.data.card;
+        const sourceColId = source.data.columnId;
+        const targetColId = column.id;
+
+        const isMergeAllowed =
+          sourceCard.copyMode && sourceColId !== targetColId;
+        const isReorderAllowed = !sourceCard.copyMode;
+
+        return isMergeAllowed || isReorderAllowed;
+      },
       getData: () => getCardDropTargetData({ card, columnId: column.id }),
+      // onDrop({ source }) {
+      //   if (!isCardData(source.data)) return;
+      //   if (source.data.card.id === card.id) return;
+
+      //   dispatch(
+      //     mergeCardIntoCard({
+      //       sourceColumnId: source.data.columnId,
+      //       sourceCardId: source.data.card.id,
+      //       targetColumnId: column.id,
+      //       targetCardId: card.id,
+      //       preserveSource: source.data.card.copyMode ?? false,
+      //     })
+      //   );
+      // },
       onDrop({ source }) {
         if (!isCardData(source.data)) return;
-        if (source.data.card.id === card.id) return;
 
-        dispatch(
-          mergeCardIntoCard({
-            sourceColumnId: source.data.columnId,
-            sourceCardId: source.data.card.id,
-            targetColumnId: column.id,
-            targetCardId: card.id,
-            preserveSource: source.data.card.copyMode ?? false,
-          })
-        );
+        const sourceCard = source.data.card;
+        const sourceColId = source.data.columnId;
+        const targetColId = column.id;
+        const isSameCard = sourceCard.id === card.id;
+        const isSameColumn = sourceColId === targetColId;
+
+        if (isSameCard) return;
+
+        if (sourceCard.copyMode) {
+          if (!isSameColumn) {
+            // ✅ Merge across columns only
+            dispatch(
+              mergeCardIntoCard({
+                sourceColumnId: sourceColId,
+                sourceCardId: sourceCard.id,
+                targetColumnId: targetColId,
+                targetCardId: card.id,
+                preserveSource: true,
+              })
+            );
+          } else {
+            // ⛔️ Don't merge within the same column
+            console.log(
+              `[CardDisplay] Skip merge: cannot merge within same column`
+            );
+          }
+        } else {
+          // ✅ Reorder in any column
+          const columnCards = column.cards;
+          const fromIndex = columnCards.findIndex(
+            (c) => c.id === sourceCard.id
+          );
+          const toIndex = columnCards.findIndex((c) => c.id === card.id);
+
+          if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
+            const before = true; // optional: add closestEdge logic if needed
+            const targetIndex = before ? toIndex : toIndex + 1;
+
+            dispatch(
+              reorderCardsInColumn({
+                columnId: targetColId,
+                fromIndex,
+                toIndex:
+                  targetIndex > fromIndex ? targetIndex - 1 : targetIndex,
+              })
+            );
+          }
+        }
       },
     });
   }, [card, column, dispatch]);
@@ -154,20 +227,35 @@ export function CardDisplay({
   return (
     <div
       ref={outerRef}
-      className={`flex border border-zinc-900 mb-1 shrink-0 flex-col gap-2 px-3 py-1 ${outerStyles[state.type]}`}
+      className={`cursor-default rounded-md flex border border-zinc-900 bg-zinc-950 shrink-0 flex-col gap-1 px-2 py-1 ${outerStyles[state.type]} `}
     >
       {state.type === "is-over" && state.closestEdge === "top" && (
         <CardShadow dragging={state.dragging} />
       )}
       <div
         ref={dragHandleRef}
-        className="cursor-grab bg-zinc-800 text-white text-xs font-semibold px-3 py-1 rounded-md hover:bg-zinc-700 transition-colors"
+        // className="cursor-grab bg-zinc-800 text-white text-xs font-semibold px-3 py-1 rounded-md hover:bg-zinc-700 transition-colors flex w-full items-center justify-center"
+        className="cursor-grab group text-zinc-600 text-xs font-semibold  rounded-md flex w-full items-center justify-center my-1"
+        onMouseEnter={() => setIsDragBarHovered(true)}
+        onMouseLeave={() => setIsDragBarHovered(false)}
       >
-        Drag to move card
+        {/* Left bar */}
+        <div className="h-1 rounded-full bg-blue-500 flex-[1] group-hover:bg-purple-500" />
+
+        {/* Text */}
+        <p className="text-center mx-2 w-fit text-blue-500 group-hover:text-purple-500">
+          Drag to move card
+        </p>
+
+        {/* Right bar */}
+        <div className="h-1 rounded-full bg-blue-500 flex-[1] group-hover:bg-purple-500" />
       </div>
       <div
-        className={`relative rounded text-slate-300 ${innerStyles[state.type]}`}
         ref={innerRef}
+        // className={`relative rounded text-slate-300 ${innerStyles[state.type]}`}
+        className={`relative rounded text-slate-300 p-1 ${
+          isDragBarHovered ? `${innerStyles[state.type]} outline-1` : ""
+        }`}
         style={
           state.type === "preview"
             ? {
@@ -178,25 +266,24 @@ export function CardDisplay({
             : undefined
         }
       >
-        <div className=" flex w-full justify-end gap-2">
-          <div className=" flex items-center gap-2 text-xs">
-            <Label htmlFor={`copy-mode-${card.id}`} className="text-white">
-              Copy Card
-            </Label>
-            <Switch
+        <div className=" flex w-full justify-between">
+          <div className="flex items-center text-xs">
+            <button
               id={`copy-card-${card.id}`}
-              checked={card.copyMode ?? false}
-              onCheckedChange={() =>
+              onClick={() =>
                 dispatch(
                   toggleCopyMode({ columnId: column.id, cardId: card.id })
                 )
               }
-              className="!bg-zinc-800 data-[state=checked]:!bg-blue-600"
-            />
+              className={`cursor-pointer rounded-full hover:bg-blue-600 text-white font-semibold px-2 py-1 transition-colors ${card.copyMode ? "!text-blue-500" : "text-zinc-600"}`}
+            >
+              {/* {card.copyMode ? "Copy On" : "Copy Off"} */}
+              <Copy size={16} />
+            </button>
           </div>
           <button
             type="button"
-            className=" text-red-500 hover:text-white"
+            className=" text-red-500 hover:text-white cursor-pointer"
             onClick={() =>
               dispatch(deleteCard({ columnId: column.id, cardId: card.id }))
             }
@@ -206,7 +293,7 @@ export function CardDisplay({
           </button>
         </div>
         {/* Dynamic fields */}
-        <div className="">
+        {/* <div className="">
           {column.fields.map((field) => (
             <label key={field.key} className="block">
               <span className="text-sm text-slate-400">{field.label}</span>
@@ -231,10 +318,10 @@ export function CardDisplay({
               />
             </label>
           ))}
-        </div>
+        </div> */}
         {/* Custom card-specific fields */}
         {customKeys.map((key) => (
-          <label key={key} className="block mt-2">
+          <label key={key} className="block mt-1">
             <span className="text-sm text-slate-400">{key}</span>
             <textarea
               rows={1}
@@ -251,15 +338,14 @@ export function CardDisplay({
                 e.target.style.height = "auto";
                 e.target.style.height = `${e.target.scrollHeight}px`;
               }}
-              className="w-full rounded-md bg-zinc-800 text-white  overflow-hidden"
+              className="w-full rounded-lg py-1 px-2 bg-zinc-800 text-white  overflow-hidden"
               style={{ minHeight: "2.25rem", lineHeight: "1.5rem" }} // optional tuning
             />
           </label>
         ))}
         {/* dropbox */}
-        <div
+        {/* <div
           ref={mergeDropRef}
-          // className="mb-2 p-2 rounded-md border border-zinc-700 bg-zinc-900 text-center text-sm text-zinc-400"
           className={`mb-2 p-2 rounded-md bg-zinc-900 text-center text-sm transition-all duration-300 ease-in-out hover:border-blue-500
     ${
       state.type === "is-over"
@@ -268,18 +354,18 @@ export function CardDisplay({
     }`}
         >
           Drop card here to merge
-        </div>
+        </div> */}
         {/* merged cards */}
         {card.mergedCards && card.mergedCards.length > 0 && (
-          <div className="mt-4 pt-3 rounded-md bg-zinc-950 border border-zinc-800 shadow-inner">
-            <div className="px-2 py-1 text-xs text-zinc-500 border-b border-zinc-700">
+          <div className="mt-1 rounded-lg bg-zinc-950 border border-zinc-800 shadow-inner">
+            <div className="p-1 flex w-full justify-center items-center text-xs text-zinc-500 border-b border-zinc-700">
               Work Orders Assigned
             </div>
 
             {/* Subcolumn for merged cards */}
-            <div className="p-2 flex flex-col gap-2">
+            <div className="p-1 flex flex-col gap-1">
               <button
-                className="text-xs text-red-500 hover:text-white px-2 py-1 mt-2"
+                className="text-xs text-red-500 hover:text-white my-1 cursor-pointer "
                 onClick={() => {
                   dispatch(
                     clearMergedCards({ columnId: column.id, cardId: card.id })
@@ -290,19 +376,6 @@ export function CardDisplay({
               </button>
 
               {card.mergedCards.map((mergedCard, index) => (
-                // <MiniCard
-                //   key={mergedCard.id}
-                //   card={mergedCard}
-                //   onDelete={() => {
-                //     dispatch(
-                //       removeMergedCard({
-                //         columnId: column.id,
-                //         parentCardId: card.id,
-                //         mergedCardId: mergedCard.id,
-                //       })
-                //     );
-                //   }}
-                // />
                 <MergedCard
                   key={mergedCard.id}
                   card={mergedCard}
@@ -315,13 +388,13 @@ export function CardDisplay({
           </div>
         )}
         {/* Add new field */}
-        <div className="flex gap-2 mt-4 items-center">
+        <div className="flex w-full justify-between items-center mt-1">
           <input
             type="text"
             placeholder="Add field (e.g. Notes)"
             value={newFieldLabel}
             onChange={(e) => setNewFieldLabel(e.target.value)}
-            className="flex-1 px-2 py-1 rounded-md bg-zinc-800 text-white placeholder:text-zinc-500 outline-hidden transition-colors duration-200 hover:bg-zinc-700"
+            className="flex-1 px-2 py-1 rounded-md bg-zinc-800 text-white placeholder:text-zinc-500 outline-hidden transition-colors duration-200 text-sm hover:bg-zinc-700 mr-1"
           />
           <button
             type="button"
@@ -339,14 +412,14 @@ export function CardDisplay({
               }
               setNewFieldLabel("");
             }}
-            className="px-2 rounded-md bg-purple-500 hover:bg-blue-600 transition-colors duration-200 cursor-pointer text-white"
+            className="px-2 rounded-lg bg-purple-500 hover:bg-blue-600 transition-colors duration-200 cursor-pointer text-white"
           >
             Add
           </button>
         </div>
         <button
           type="button"
-          className="px-2 py-1 rounded-md bg-sky-700 hover:bg-sky-600 text-white text-xs"
+          className="px-2 py-1 mt-1 rounded-full bg-blue-500 hover:bg-blue-600 text-white text-xs cursor-pointer"
           onClick={() => {
             const fieldKeys = Object.keys(card.values);
             if (fieldKeys.length === 0) return;
@@ -686,11 +759,11 @@ export function MergedCard({
   return (
     <div
       ref={ref}
-      className={`p-2 rounded bg-zinc-900 border border-zinc-700 text-xs shadow ${
+      className={`p-1 rounded-lg bg-zinc-900 border border-zinc-700 text-xs shadow ${
         state.type === "is-over" ? "ring ring-blue-500" : ""
       }`}
     >
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex justify-between items-center mb-1">
         <div className="italic text-slate-400">
           Origin: {card.createdInColumnId ?? "unknown"}
         </div>
@@ -705,7 +778,7 @@ export function MergedCard({
             )
           }
           aria-label="Delete"
-          className="text-red-500 hover:text-white"
+          className="text-red-500 hover:text-white cursor-pointer"
         >
           <Trash2 size={14} />
         </button>

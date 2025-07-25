@@ -296,25 +296,25 @@ export function Column({ column }: { column: TColumn }) {
       ref={outerFullHeightRef}
     >
       <div
-        className={`flex max-h-full flex-col rounded-lg bg-zinc-950 text-neutral-50 ${stateStyles[state.type]}`}
+        className={`flex max-h-full flex-col rounded-lg overflow-hidden text-neutral-50 ${stateStyles[state.type]}`}
         ref={innerRef}
         {...{ [blockBoardPanningAttr]: true }}
       >
         {/* Extra wrapping element to make it easy to toggle visibility of content when a column is dragging over */}
         <div
-          className={`flex max-h-full flex-col ${state.type === "is-column-over" ? "invisible" : ""}`}
+          className={`cursor-default flex max-h-full flex-col gap-0.5 ${state.type === "is-column-over" ? "invisible" : ""}`}
         >
           <div
-            className="flex flex-row items-center justify-between p-3 pb-2"
+            className="flex flex-row items-center justify-between px-3 py-1 rounded-md bg-zinc-950"
             ref={headerRef}
           >
-            <div className="pl-2 font-bold leading-4">{column.title}</div>
+            <div className="pl-2 font-bold leading-4 ">{column.title}</div>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="rounded p-2 hover:bg-slate-700 active:bg-slate-600"
+                  className="rounded p-2 hover:bg-slate-700 active:bg-slate-600 cursor-pointer"
                   aria-label="More actions"
                 >
                   <Ellipsis size={16} />
@@ -346,7 +346,7 @@ export function Column({ column }: { column: TColumn }) {
             </DropdownMenu>
           </div>
           <div
-            className="flex flex-col overflow-y-auto [overflow-anchor:none] [scrollbar-color:var(--color-slate-600)_var(--color-slate-700)] [scrollbar-width:thin]"
+            className="flex flex-col pr-0.5 gap-2 overflow-y-auto [overflow-anchor:none] scrollbar-thumb-rounded-3xl scrollbar-thin scrollbar-track-rounded  scrollbar-thumb-zinc-600 scrollbar-track-zinc-900]"
             ref={scrollableRef}
           >
             <CardList column={column} />
@@ -356,7 +356,7 @@ export function Column({ column }: { column: TColumn }) {
               </div>
             ) : null}
           </div>
-          <div className="flex justify-between gap-2 p-3">
+          <div className="flex p-1 rounded-md bg-zinc-950">
             <button
               type="button"
               className="flex items-center gap-1 px-2 py-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer w-fit"
@@ -372,13 +372,13 @@ export function Column({ column }: { column: TColumn }) {
               <Plus size={16} />
               <div className="leading-4">Add a card</div>
             </button>
-            <button
+            {/* <button
               type="button"
               className="px-2 py-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
               aria-label="Create card from template"
             >
               <Copy size={16} />
-            </button>
+            </button> */}
           </div>
         </div>
       </div>

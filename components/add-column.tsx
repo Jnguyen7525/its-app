@@ -108,13 +108,6 @@ export default function AddColumn({
 
       <div className="flex gap-2 mt-4">
         <button
-          type="submit"
-          className="flex-1 py-1 rounded-md bg-blue-500 hover:bg-blue-600 transition-colors duration-200 cursor-pointer text-white"
-        >
-          Create Column
-        </button>
-
-        <button
           type="button"
           onClick={() => {
             setTitle("");
@@ -125,6 +118,12 @@ export default function AddColumn({
           className="flex-1 py-1 rounded-md bg-red-500 hover:bg-red-700 transition-colors duration-200 cursor-pointer text-white"
         >
           Cancel
+        </button>{" "}
+        <button
+          type="submit"
+          className="flex-1 py-1 rounded-md bg-blue-500 hover:bg-blue-600 transition-colors duration-200 cursor-pointer text-white"
+        >
+          Create
         </button>
       </div>
     </form>

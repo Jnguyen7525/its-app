@@ -42,9 +42,9 @@ export default function RootLayout({
 
                 {/* <FilterBar /> */}
                 {/* position: absolute needed for max-height:100% to be respected internally */}
-                <div className="flex grow flex-col flex-1">
+                <div className="flex grow flex-col flex-1 overflow-hidden">
                   {/* <div className="absolute inset-0"> */}
-                  <main className="flex-1 overflow-x-hidden  ">{children}</main>
+                  <main className="flex-1 overflow-hidden  ">{children}</main>
                   {/* </div> */}
                 </div>
               </div>
