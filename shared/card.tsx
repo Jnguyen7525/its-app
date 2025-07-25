@@ -155,20 +155,6 @@ export function CardDisplay({
         return isMergeAllowed || isReorderAllowed;
       },
       getData: () => getCardDropTargetData({ card, columnId: column.id }),
-      // onDrop({ source }) {
-      //   if (!isCardData(source.data)) return;
-      //   if (source.data.card.id === card.id) return;
-
-      //   dispatch(
-      //     mergeCardIntoCard({
-      //       sourceColumnId: source.data.columnId,
-      //       sourceCardId: source.data.card.id,
-      //       targetColumnId: column.id,
-      //       targetCardId: card.id,
-      //       preserveSource: source.data.card.copyMode ?? false,
-      //     })
-      //   );
-      // },
       onDrop({ source }) {
         if (!isCardData(source.data)) return;
 
@@ -234,21 +220,12 @@ export function CardDisplay({
       )}
       <div
         ref={dragHandleRef}
-        // className="cursor-grab bg-zinc-800 text-white text-xs font-semibold px-3 py-1 rounded-md hover:bg-zinc-700 transition-colors flex w-full items-center justify-center"
         className="cursor-grab group text-zinc-600 text-xs font-semibold  rounded-md flex w-full items-center justify-center my-2"
         onMouseEnter={() => setIsDragBarHovered(true)}
         onMouseLeave={() => setIsDragBarHovered(false)}
       >
         {/* Left bar */}
         <div className="h-1 rounded-full bg-blue-500 flex-[1] group-hover:bg-purple-500" />
-
-        {/* Text */}
-        {/* <p className="text-center mx-2 w-fit text-blue-500 group-hover:text-purple-500">
-          Drag to move card
-        </p> */}
-
-        {/* Right bar */}
-        {/* <div className="h-1 rounded-full bg-blue-500 flex-[1] group-hover:bg-purple-500" /> */}
       </div>
       <div
         ref={innerRef}
@@ -292,33 +269,6 @@ export function CardDisplay({
             <Trash2 size={16} />
           </button>
         </div>
-        {/* Dynamic fields */}
-        {/* <div className="">
-          {column.fields.map((field) => (
-            <label key={field.key} className="block">
-              <span className="text-sm text-slate-400">{field.label}</span>
-
-              <textarea
-                rows={1} // ⬅️ starts at one row
-                value={card.values[field.key] ?? ""}
-                onChange={(e) => {
-                  dispatch(
-                    updateCardValue({
-                      columnId: column.id,
-                      cardId: card.id,
-                      fieldKey: field.key,
-                      value: e.target.value,
-                    })
-                  );
-                  e.target.style.height = "auto"; // 🪄 reset height
-                  e.target.style.height = `${e.target.scrollHeight}px`; // grow as needed
-                }}
-                className="w-full rounded-md bg-zinc-800 text-white  overflow-hidden"
-                style={{ minHeight: "2.25rem", lineHeight: "1.5rem" }} // optional tuning
-              />
-            </label>
-          ))}
-        </div> */}
         {/* Custom card-specific fields */}
         {customKeys.map((key) => (
           <label key={key} className="block mt-1">
@@ -469,7 +419,11 @@ export function Card({ card, column }: { card: TCard; column: TColumn }) {
           getCardData({
             card,
             columnId: column.id,
-            rect: element.getBoundingClientRect(),
+            // rect: element.getBoundingClientRect(),
+            // !updated needed when we switch the drag handle to the bar instead of the whole card. When you switched the draggable element to dragHandleRef, you're only capturing the size of the drag bar when calculating the card’s bounding box. This leads to:
+            //! - 🧱 A drag preview and state.dragging.rect that are too small, matching just the bar’s height
+            //! - 🫥 Reordering targets (like the last or first card) failing because the drop shadow and edge proximity calculations rely on that rect’s size to be accurate
+            rect: inner?.getBoundingClientRect(),
           }),
         onGenerateDragPreview({ nativeSetDragImage, location, source }) {
           const data = source.data;
@@ -504,10 +458,6 @@ export function Card({ card, column }: { card: TCard; column: TColumn }) {
             isCardDropTargetData(dt.data)
           );
 
-          // if (!targetDrop || sourceCardId === targetDrop.data.card.id) {
-          //   setState(idle);
-          //   return;
-          // }
           const targetData = getCardDropTargetDataSafe(targetDrop);
 
           if (
@@ -552,7 +502,9 @@ export function Card({ card, column }: { card: TCard; column: TColumn }) {
         },
       }),
       dropTargetForElements({
-        element: outer,
+        // element: outer,
+        element: innerRef.current ?? outerRef.current,
+
         getIsSticky: () => true,
         // canDrop: isDraggingACard,
         canDrop({ source }) {
@@ -628,6 +580,156 @@ export function Card({ card, column }: { card: TCard; column: TColumn }) {
   );
 }
 
+// export function MergedCard({
+//   card,
+//   parentCardId,
+//   columnId,
+//   index,
+// }: {
+//   card: TCard;
+//   parentCardId: string;
+//   columnId: string;
+//   index: number;
+// }) {
+//   const ref = useRef<HTMLDivElement | null>(null);
+//   const [state, setState] = useState<TCardState>(idle);
+//   const dispatch = useAppDispatch();
+
+//   useEffect(() => {
+//     const el = ref.current;
+//     if (!el) return;
+
+//     return draggable({
+//       element: el,
+//       getInitialData: ({ element }) => ({
+//         type: "merged-card",
+//         card,
+//         index,
+//         rect: element.getBoundingClientRect(),
+//         parentCardId,
+//         columnId,
+//       }),
+//       onDragStart: () => setState({ type: "is-dragging" }),
+
+//       onDrop: () => setState(idle),
+//     });
+//   }, [card, index, parentCardId, columnId]);
+
+//   useEffect(() => {
+//     const el = ref.current;
+//     if (!el) return;
+
+//     return dropTargetForElements({
+//       element: el,
+//       getIsSticky: () => true,
+//       canDrop({ source }) {
+//         return (
+//           source.data.type === "merged-card" &&
+//           source.data.parentCardId === parentCardId
+//         );
+//       },
+//       getData: ({ element, input }) =>
+//         attachClosestEdge(
+//           { card }, // ⬅️ user-defined metadata
+//           {
+//             element,
+//             input,
+//             allowedEdges: ["top", "bottom"],
+//           }
+//         ),
+
+//       onDrag({ source, self }) {
+//         // if (source.data.card.id === card.id) return;
+//         if (!isDraggingAMergedCard(source.data)) return;
+//         if (source.data.card.id === card.id) return;
+
+//         const closestEdge = extractClosestEdge(self.data);
+//         if (!closestEdge) return;
+
+//         const proposed: TCardState = {
+//           type: "is-over",
+//           dragging: source.data.rect,
+//           closestEdge,
+//         };
+//         setState((current) =>
+//           isShallowEqual(proposed, current) ? current : proposed
+//         );
+//       },
+//       onDrop({ source }) {
+//         // if (source.data.card.id === card.id) return;
+//         if (!isMergedCardData(source.data)) return;
+//         if (source.data.card.id === card.id) return;
+
+//         dispatch(
+//           reorderMergedCards({
+//             columnId,
+//             cardId: parentCardId,
+//             fromIndex: source.data.index,
+//             toIndex: index,
+//           })
+//         );
+//         setState(idle);
+//       },
+//       onDragLeave() {
+//         setState(idle);
+//       },
+//     });
+//   }, [card, index, parentCardId, columnId]);
+
+//   return (
+//     <div
+//       ref={ref}
+//       className={`p-1 rounded-lg bg-zinc-900 border border-zinc-700 text-xs shadow ${
+//         state.type === "is-over" ? "ring ring-blue-500" : ""
+//       }`}
+//     >
+//       <div className="flex justify-between items-center mb-1">
+//         <div className="italic text-slate-400">
+//           Origin: {card.createdInColumnId ?? "unknown"}
+//         </div>
+//         <div className="flex items-center gap-2">
+//           <button
+//             onClick={() =>
+//               dispatch(
+//                 removeMergedCard({
+//                   columnId,
+//                   parentCardId,
+//                   mergedCardId: card.id,
+//                 })
+//               )
+//             }
+//             aria-label="Edit"
+//             className="text-blue-500 hover:text-white cursor-pointer"
+//           >
+//             <Pencil size={14} />
+//           </button>
+//           <button
+//             onClick={() =>
+//               dispatch(
+//                 removeMergedCard({
+//                   columnId,
+//                   parentCardId,
+//                   mergedCardId: card.id,
+//                 })
+//               )
+//             }
+//             aria-label="Delete"
+//             className="text-red-500 hover:text-white cursor-pointer"
+//           >
+//             <Trash2 size={14} />
+//           </button>
+//         </div>
+//       </div>
+//       {Object.entries(card.values).map(([key, value]) => (
+//         <div key={key} className="mb-1">
+//           <span className="font-semibold text-white">{key}:</span>{" "}
+//           <span className="text-slate-300">{value}</span>
+//         </div>
+//       ))}
+//     </div>
+//   );
+// }
+
 export function MergedCard({
   card,
   parentCardId,
@@ -657,7 +759,15 @@ export function MergedCard({
         parentCardId,
         columnId,
       }),
-      onDragStart: () => setState({ type: "is-dragging" }),
+      onDragStart: () => {
+        const el = ref.current;
+        if (!el) return;
+        setState({
+          type: "is-dragging",
+          // dragging: el.getBoundingClientRect(),
+          // container: el, // if needed
+        });
+      },
       onDrop: () => setState(idle),
     });
   }, [card, index, parentCardId, columnId]);
@@ -677,7 +787,7 @@ export function MergedCard({
       },
       getData: ({ element, input }) =>
         attachClosestEdge(
-          { card }, // ⬅️ user-defined metadata
+          { card },
           {
             element,
             input,
@@ -686,7 +796,6 @@ export function MergedCard({
         ),
 
       onDrag({ source, self }) {
-        // if (source.data.card.id === card.id) return;
         if (!isDraggingAMergedCard(source.data)) return;
         if (source.data.card.id === card.id) return;
 
@@ -703,7 +812,6 @@ export function MergedCard({
         );
       },
       onDrop({ source }) {
-        // if (source.data.card.id === card.id) return;
         if (!isMergedCardData(source.data)) return;
         if (source.data.card.id === card.id) return;
 
@@ -724,55 +832,63 @@ export function MergedCard({
   }, [card, index, parentCardId, columnId]);
 
   return (
-    <div
-      ref={ref}
-      className={`p-1 rounded-lg bg-zinc-900 border border-zinc-700 text-xs shadow ${
-        state.type === "is-over" ? "ring ring-blue-500" : ""
-      }`}
-    >
-      <div className="flex justify-between items-center mb-1">
-        <div className="italic text-slate-400">
-          Origin: {card.createdInColumnId ?? "unknown"}
+    <>
+      {state.type === "is-over" && state.closestEdge === "top" && (
+        <CardShadow dragging={state.dragging} />
+      )}
+      <div
+        ref={ref}
+        className={`relative p-1 rounded-lg bg-zinc-900 border border-zinc-700 text-xs shadow transition-all duration-200 ${
+          state.type === "is-over" ? "ring ring-blue-500" : ""
+        } ${state.type === "is-dragging" ? "shadow-2xl scale-[1.02] z-10" : ""}`}
+      >
+        <div className="flex justify-between items-center mb-1">
+          <div className="italic text-slate-400">
+            Origin: {card.createdInColumnId ?? "unknown"}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() =>
+                dispatch(
+                  removeMergedCard({
+                    columnId,
+                    parentCardId,
+                    mergedCardId: card.id,
+                  })
+                )
+              }
+              aria-label="Edit"
+              className="text-blue-500 hover:text-white cursor-pointer"
+            >
+              <Pencil size={14} />
+            </button>
+            <button
+              onClick={() =>
+                dispatch(
+                  removeMergedCard({
+                    columnId,
+                    parentCardId,
+                    mergedCardId: card.id,
+                  })
+                )
+              }
+              aria-label="Delete"
+              className="text-red-500 hover:text-white cursor-pointer"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() =>
-              dispatch(
-                removeMergedCard({
-                  columnId,
-                  parentCardId,
-                  mergedCardId: card.id,
-                })
-              )
-            }
-            aria-label="Edit"
-            className="text-blue-500 hover:text-white cursor-pointer"
-          >
-            <Pencil size={14} />
-          </button>
-          <button
-            onClick={() =>
-              dispatch(
-                removeMergedCard({
-                  columnId,
-                  parentCardId,
-                  mergedCardId: card.id,
-                })
-              )
-            }
-            aria-label="Delete"
-            className="text-red-500 hover:text-white cursor-pointer"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
+        {Object.entries(card.values).map(([key, value]) => (
+          <div key={key} className="mb-1">
+            <span className="font-semibold text-white">{key}:</span>{" "}
+            <span className="text-slate-300">{value}</span>
+          </div>
+        ))}
       </div>
-      {Object.entries(card.values).map(([key, value]) => (
-        <div key={key} className="mb-1">
-          <span className="font-semibold text-white">{key}:</span>{" "}
-          <span className="text-slate-300">{value}</span>
-        </div>
-      ))}
-    </div>
+      {state.type === "is-over" && state.closestEdge === "bottom" && (
+        <CardShadow dragging={state.dragging} />
+      )}
+    </>
   );
 }
