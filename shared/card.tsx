@@ -235,7 +235,7 @@ export function CardDisplay({
       <div
         ref={dragHandleRef}
         // className="cursor-grab bg-zinc-800 text-white text-xs font-semibold px-3 py-1 rounded-md hover:bg-zinc-700 transition-colors flex w-full items-center justify-center"
-        className="cursor-grab group text-zinc-600 text-xs font-semibold  rounded-md flex w-full items-center justify-center my-1"
+        className="cursor-grab group text-zinc-600 text-xs font-semibold  rounded-md flex w-full items-center justify-center my-2"
         onMouseEnter={() => setIsDragBarHovered(true)}
         onMouseLeave={() => setIsDragBarHovered(false)}
       >
@@ -243,12 +243,12 @@ export function CardDisplay({
         <div className="h-1 rounded-full bg-blue-500 flex-[1] group-hover:bg-purple-500" />
 
         {/* Text */}
-        <p className="text-center mx-2 w-fit text-blue-500 group-hover:text-purple-500">
+        {/* <p className="text-center mx-2 w-fit text-blue-500 group-hover:text-purple-500">
           Drag to move card
-        </p>
+        </p> */}
 
         {/* Right bar */}
-        <div className="h-1 rounded-full bg-blue-500 flex-[1] group-hover:bg-purple-500" />
+        {/* <div className="h-1 rounded-full bg-blue-500 flex-[1] group-hover:bg-purple-500" /> */}
       </div>
       <div
         ref={innerRef}
@@ -275,7 +275,7 @@ export function CardDisplay({
                   toggleCopyMode({ columnId: column.id, cardId: card.id })
                 )
               }
-              className={`cursor-pointer rounded-full hover:bg-blue-600 text-white font-semibold px-2 py-1 transition-colors ${card.copyMode ? "!text-blue-500" : "text-zinc-600"}`}
+              className={`cursor-pointer rounded hover:bg-slate-700 text-white font-semibold p-1 transition-colors ${card.copyMode ? "!text-blue-500 bg-slate-700" : "text-zinc-600"}`}
             >
               {/* {card.copyMode ? "Copy On" : "Copy Off"} */}
               <Copy size={16} />

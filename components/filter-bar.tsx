@@ -4,6 +4,7 @@ import { SettingsContext } from "@/shared/settings-context";
 import { bindAll } from "bind-event-listener";
 import {
   Code,
+  Copy,
   Filter,
   FilterIcon,
   Menu,
@@ -154,7 +155,16 @@ export function FilterBar() {
           ref={settingsTriggerRef}
           className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
           onClick={() => setIsSettingsDialogOpen((current) => !current)}
-          aria-label="toggle top bar visibility"
+          aria-label="Copy Board Template"
+        >
+          <Copy size={24} />
+        </button>
+        <button
+          type="button"
+          ref={settingsTriggerRef}
+          className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
+          onClick={() => setIsSettingsDialogOpen((current) => !current)}
+          aria-label="User Menu"
         >
           <User2 size={24} />
         </button>
@@ -164,7 +174,7 @@ export function FilterBar() {
           ref={settingsTriggerRef}
           className="p-1 rounded-md hover:bg-zinc-800 transition-colors duration-200 cursor-pointer"
           onClick={() => setIsSettingsDialogOpen((current) => !current)}
-          aria-label="toggle top bar visibility"
+          aria-label="Board Menu"
         >
           <Menu size={24} />
         </button>

@@ -4,7 +4,7 @@ import {
   draggable,
   dropTargetForElements,
 } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
-import { Copy, Ellipsis, Plus, Trash2 } from "lucide-react";
+import { Copy, Ellipsis, Plus, TableProperties, Trash2 } from "lucide-react";
 import { memo, useContext, useEffect, useRef, useState } from "react";
 import invariant from "tiny-invariant";
 
@@ -309,44 +309,48 @@ export function Column({ column }: { column: TColumn }) {
             ref={headerRef}
           >
             <div className="pl-2 font-bold leading-4 ">{column.title}</div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  type="button"
-                  className="rounded p-2 hover:bg-slate-700 active:bg-slate-600 cursor-pointer"
-                  aria-label="More actions"
-                >
-                  <Ellipsis size={16} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-zinc-950 text-white border-none p-2">
-                {/* <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <div className="flex items-center gap-1">
+              <div className="text-purple-500 hover:text-purple-600 rounded p-1 hover:bg-slate-700 cursor-pointer">
+                <TableProperties size={20} />
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="rounded p-1 hover:bg-slate-700 active:bg-slate-600 cursor-pointer"
+                    aria-label="More actions"
+                  >
+                    <Ellipsis size={16} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-zinc-950 text-white border-none p-2">
+                  {/* <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator /> */}
-                <DropdownMenuItem
-                  className="cursor-pointer flex items-center gap-2 text-red-500 hover:text-white hover:bg-red-500 w-full"
-                  onClick={() =>
-                    dispatch(deleteAllCardsInColumn({ columnId: column.id }))
-                  }
-                >
-                  <Trash2 className="text-inherit" />
-                  <p>Delete all tasks in this column</p>
-                </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className="cursor-pointer flex items-center gap-2 text-red-500 hover:text-white hover:bg-red-500 w-full"
+                    onClick={() =>
+                      dispatch(deleteAllCardsInColumn({ columnId: column.id }))
+                    }
+                  >
+                    <Trash2 className="text-inherit" />
+                    <p>Delete all tasks in this column</p>
+                  </DropdownMenuItem>
 
-                <DropdownMenuItem
-                  className="cursor-pointer flex items-center gap-2 text-red-500 hover:text-white hover:bg-red-500 w-full"
-                  onClick={() =>
-                    dispatch(deleteColumn({ columnId: column.id }))
-                  }
-                >
-                  <Trash2 className="text-inherit" />
-                  <p>Delete column</p>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuItem
+                    className="cursor-pointer flex items-center gap-2 text-red-500 hover:text-white hover:bg-red-500 w-full"
+                    onClick={() =>
+                      dispatch(deleteColumn({ columnId: column.id }))
+                    }
+                  >
+                    <Trash2 className="text-inherit" />
+                    <p>Delete column</p>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
           <div
-            className="flex flex-col pr-0.5 gap-2 overflow-y-auto [overflow-anchor:none] scrollbar-thumb-rounded-3xl scrollbar-thin scrollbar-track-rounded  scrollbar-thumb-zinc-600 scrollbar-track-zinc-900]"
+            className="flex flex-col pr-0.5 gap-2 overflow-y-auto [overflow-anchor:none] scrollbar-thumb-rounded-3xl scrollbar-thin scrollbar-track-rounded  scrollbar-thumb-zinc-950 scrollbar-track-zinc-800 ]"
             ref={scrollableRef}
           >
             <CardList column={column} />
